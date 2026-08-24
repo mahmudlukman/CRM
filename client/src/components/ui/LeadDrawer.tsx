@@ -11,7 +11,8 @@ import {
   X,
 } from "lucide-react";
 import EmailGeneratorModal from "./EmailGeneratorModal";
-import type { Lead } from "../@types/crm";
+import type { Lead } from "../../@types/crm";
+import { useLazyGetLeadSummaryQuery } from "../../redux/features/ai/aiApi";
 
 interface LeadDrawerProps {
   lead: Lead;
@@ -36,12 +37,18 @@ export default function LeadDrawer({
   onDelete,
 }: LeadDrawerProps) {
   const [getLeadSummary, { data: summary, isLoading: loading, error }] =
-    useGetLeadSummaryMutation();
+    useLazyGetLeadSummaryQuery();
   const [showEmailModal, setShowEmailModal] = useState(false);
 
-  const summaryError = error ? "Couldn't analyze this lead right now." : "";
+  const [analyzedLeadId, setAnalyzedLeadId] = useState<string | null>(null);
+
+  const isCurrentSummary = analyzedLeadId === lead._id;
+  const showLoading = loading && isCurrentSummary;
+  const summaryError =
+    error && isCurrentSummary ? "Couldn't analyze this lead right now." : "";
 
   function analyze() {
+    setAnalyzedLeadId(lead._id);
     getLeadSummary(lead._id);
   }
 
@@ -139,7 +146,7 @@ export default function LeadDrawer({
 
                 <b>AI Lead Summary</b>
 
-                {loading ? null : summary ? (
+                {showLoading ? null : summary && isCurrentSummary ? (
                   <button
                     type="button"
                     className="link-btn"
@@ -155,7 +162,7 @@ export default function LeadDrawer({
                 )}
               </div>
 
-              {loading && (
+              {showLoading && (
                 <div className="ai-loading small">
                   <span className="spinner dark" />
                   Analyzing…
@@ -164,7 +171,7 @@ export default function LeadDrawer({
 
               {summaryError && <p className="modal-error">{summaryError}</p>}
 
-              {summary && !loading && (
+              {summary && isCurrentSummary && !showLoading && (
                 <>
                   <p className="ai-summary">{summary.summary}</p>
 

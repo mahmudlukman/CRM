@@ -1,6 +1,5 @@
-import type { FollowUp } from "../../@types/crm";
+import type { FollowUp, FollowUpGroup } from "../../@types/crm";
 import type { RowMenuItem } from "../../@types/lead";
-import type { FollowUpGroup } from "../../utils/followUpHelpers";
 import TaskRow from "./TaskRow";
 
 interface TaskListProps {

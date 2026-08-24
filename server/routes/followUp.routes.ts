@@ -10,6 +10,13 @@ import { isAuthenticated, requireActiveAccount } from "../middlewares/auth";
 const followUpsRouter = express.Router();
 
 followUpsRouter.get(
+  "/follow-ups",
+  isAuthenticated,
+  requireActiveAccount,
+  getFollowUps,
+);
+
+followUpsRouter.get(
   "/leads/:id/follow-ups",
   isAuthenticated,
   requireActiveAccount,

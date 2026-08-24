@@ -1,11 +1,15 @@
 import { Lightbulb, ListChecks, RefreshCw, Sparkles } from "lucide-react";
-import { useGetPipelineInsightMutation } from "../../../redux/features/ai/aiApi";
+import { useGetPipelineInsightQuery } from "../../../redux/features/ai/aiApi";
 import Card from "../../ui/Card";
 import CardTitle from "../../ui/CardTitle";
 
 const AiInsightsCard = () => {
-  const [getPipelineInsight, { data: ai, isLoading: aiLoading, error }] =
-    useGetPipelineInsightMutation();
+  const {
+    data: ai,
+    isLoading: aiLoading,
+    error,
+    refetch,
+  } = useGetPipelineInsightQuery();
 
   const aiError = error
     ? "Couldn't generate insights right now. Please try again."
@@ -16,7 +20,7 @@ const AiInsightsCard = () => {
       {ai && (
         <button
           className="icon-btn refresh"
-          onClick={() => getPipelineInsight()}
+          onClick={() => refetch()} // Changed from getPipelineInsight() to refetch()
           disabled={aiLoading}
           aria-label="Regenerate"
         >
@@ -37,7 +41,7 @@ const AiInsightsCard = () => {
           </p>
           <button
             className="primary-button small"
-            onClick={() => getPipelineInsight()}
+            onClick={() => refetch()} // Changed from getPipelineInsight() to refetch()
           >
             <Sparkles size={16} /> Analyze pipeline
           </button>

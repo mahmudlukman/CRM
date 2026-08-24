@@ -1,11 +1,7 @@
-
+import Pipeline from "../../components/pipeline/Pipeline";
 
 const PipelinePage = () => {
-  return (
-    <div>
-      PipelinePage
-    </div>
-  )
-}
+  return <Pipeline />;
+};
 
-export default PipelinePage
+export default PipelinePage;

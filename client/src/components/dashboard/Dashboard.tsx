@@ -27,12 +27,10 @@ const Dashboard = () => {
   const [createLead] = useCreateLeadMutation();
   const [showLeadModal, setShowLeadModal] = useState(false);
 
-  async function handleCreateLead(payload: LeadPayload) {
-    // getOverview's providesTags cover Lead:LIST, so this refetches the
-    // overview automatically — no manual reload needed.
+  const handleCreateLead = async (payload: LeadPayload) => {
     await createLead(payload).unwrap();
     setShowLeadModal(false);
-  }
+  };
 
   if (isLoading) {
     return (

@@ -68,6 +68,11 @@ export type FollowUpPayload = Partial<
   >
 >;
 
+export interface FollowUpGroup {
+  key: "OVERDUE" | "UPCOMING" | "COMPLETED";
+  items: FollowUp[];
+}
+
 export interface NoteLeadRef {
   _id: string;
   name: string;
@@ -221,3 +226,22 @@ export type EmailTone =
   | "Friendly & professional"
   | "Concise & direct"
   | "Warm & casual";
+
+export interface SettingsUser {
+  name?: string;
+  email?: string;
+  company?: string;
+  avatar?: string;
+}
+
+export interface ProfileFormValues {
+  name: string;
+  company: string;
+  avatar: string;
+}
+
+export interface PasswordFormValues {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}

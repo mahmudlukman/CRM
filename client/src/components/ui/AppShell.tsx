@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { Topbar } from "./Topbar";
-import { Sidebar } from "lucide-react";
+import { Sidebar } from "./Sidebar";
 
 export const AppShell = () => {
   return (

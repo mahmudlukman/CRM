@@ -3,9 +3,27 @@ import type { FollowUp, FollowUpPayload } from "../../../@types/crm";
 
 export const followUpsApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    // NOTE: the backend route is GET /leads/:id/follow-ups — Express
-    // requires that segment to be present, so leadId is a required
-    // argument here, not optional.
+    getAllFollowUps: builder.query<
+      { success: boolean; followUps: FollowUp[] },
+      void
+    >({
+      query: () => ({
+        url: "follow-ups",
+        method: "GET",
+        credentials: "include" as const,
+      }),
+      providesTags: (result) =>
+        result?.followUps
+          ? [
+              ...result.followUps.map((task) => ({
+                type: "FollowUp" as const,
+                id: task._id,
+              })),
+              { type: "FollowUp" as const, id: "LIST" },
+            ]
+          : [{ type: "FollowUp" as const, id: "LIST" }],
+    }),
+
     getFollowUps: builder.query<
       { success: boolean; followUps: FollowUp[] },
       string
@@ -71,6 +89,7 @@ export const followUpsApi = apiSlice.injectEndpoints({
 });
 
 export const {
+  useGetAllFollowUpsQuery,
   useGetFollowUpsQuery,
   useCreateFollowUpMutation,
   useUpdateFollowUpMutation,

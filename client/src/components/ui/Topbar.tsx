@@ -2,7 +2,9 @@ import { Bell, ChevronDown, Search, UserRound } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Logo from "./Logo.jsx";
-import { useAuth } from "../context/AuthContext.jsx";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../@types/index.js";
+import { useLogoutMutation } from "../../redux/features/auth/authApi.js";
 
 const nav = [
   ["Dashboard", "/"],
@@ -14,13 +16,18 @@ const nav = [
 
 export const Topbar = () => {
   const [open, setOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user } = useSelector((state: RootState) => state.auth);
+  const [logout] = useLogoutMutation();
   const navigate = useNavigate();
 
-  function signOut() {
-    logout();
-    navigate("/login");
-  }
+  const signOut = async () => {
+    try {
+      await logout({}).unwrap();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 border-b border-transparent bg-white/95 backdrop-blur">

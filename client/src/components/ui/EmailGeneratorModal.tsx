@@ -1,104 +1,51 @@
 import { useState } from "react";
 import { Check, Copy, Sparkles, X } from "lucide-react";
+import type { EmailPurpose, EmailTone, Lead } from "../../@types/crm";
+import { useGenerateLeadEmailMutation } from "../../redux/features/ai/aiApi";
 
-import { api } from "../api";
-import type { Lead } from "../../@types/lead";
-
-const PURPOSES = [
+const PURPOSES: EmailPurpose[] = [
   "Follow-up",
   "Introduction",
   "Check-in",
   "Proposal",
   "Thank you",
-] as const;
-
-const TONES = [
+];
+const TONES: EmailTone[] = [
   "Friendly & professional",
   "Formal",
   "Concise & direct",
   "Warm & casual",
-] as const;
-
-type EmailPurpose = (typeof PURPOSES)[number];
-type EmailTone = (typeof TONES)[number];
-
-interface EmailDraft {
-  subject: string;
-  body: string;
-}
-
-interface EmailGeneratorResponse {
-  subject: string;
-  body: string;
-}
+];
 
 interface EmailGeneratorModalProps {
   lead: Lead;
   onClose: () => void;
 }
 
-function idOf(lead: Lead): string {
-  return lead._id || lead.id || "";
-}
-
-export default function EmailGeneratorModal({
-  lead,
-  onClose,
-}: EmailGeneratorModalProps) {
+const EmailGeneratorModal = ({ lead, onClose }: EmailGeneratorModalProps) => {
   const [purpose, setPurpose] = useState<EmailPurpose>("Follow-up");
-
   const [tone, setTone] = useState<EmailTone>("Friendly & professional");
+  const [copied, setCopied] = useState(false);
 
-  const [draft, setDraft] = useState<EmailDraft | null>(null);
+  // The draft itself lives in the mutation's own result rather than a
+  // separate `draft` state — generate() just fires the call, and
+  // `data`/`isLoading`/`error` below track its outcome.
+  const [generateLeadEmail, { data: draft, isLoading: loading, error }] =
+    useGenerateLeadEmailMutation();
 
-  const [loading, setLoading] = useState<boolean>(false);
+  const errorMessage = error
+    ? "Couldn't generate an email right now. Please try again."
+    : "";
 
-  const [error, setError] = useState<string>("");
-
-  const [copied, setCopied] = useState<boolean>(false);
-
-  async function generate(): Promise<void> {
-    const leadId = idOf(lead);
-
-    if (!leadId) {
-      setError("Unable to identify this lead.");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-
-    try {
-      const { data } = await api.post<EmailGeneratorResponse>(
-        `/ai/leads/${leadId}/email`,
-        {
-          purpose,
-          tone,
-        },
-      );
-
-      setDraft(data);
-    } catch {
-      setError("Couldn't generate an email right now. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+  function generate() {
+    generateLeadEmail({ leadId: lead._id, purpose, tone });
   }
 
-  async function copy(): Promise<void> {
+  async function copy() {
     if (!draft) return;
-
-    try {
-      await navigator.clipboard.writeText(draft.body);
-
-      setCopied(true);
-
-      window.setTimeout(() => {
-        setCopied(false);
-      }, 2000);
-    } catch {
-      setError("Couldn't copy the email to your clipboard.");
-    }
+    await navigator.clipboard.writeText(draft.body);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   return (
@@ -108,14 +55,11 @@ export default function EmailGeneratorModal({
         onClick={(event) => event.stopPropagation()}
       >
         {copied && <div className="toast">✓ Email copied to clipboard</div>}
-
         <div className="flex items-start justify-between">
           <div>
             <h2>AI Email Generator</h2>
-
             <p className="modal-subtitle">Draft an email to {lead.name}</p>
           </div>
-
           <button
             type="button"
             className="icon-btn"
@@ -125,45 +69,35 @@ export default function EmailGeneratorModal({
             <X size={18} />
           </button>
         </div>
-
         <div className="two-col">
           <div className="field">
-            <label htmlFor="email-purpose">Purpose</label>
-
+            <label>Purpose</label>
             <select
-              id="email-purpose"
               value={purpose}
-              onChange={(event) =>
-                setPurpose(event.target.value as EmailPurpose)
-              }
+              onChange={(e) => setPurpose(e.target.value as EmailPurpose)}
             >
-              {PURPOSES.map((item) => (
-                <option key={item} value={item}>
-                  {item}
+              {PURPOSES.map((p) => (
+                <option key={p} value={p}>
+                  {p}
                 </option>
               ))}
             </select>
           </div>
-
           <div className="field">
-            <label htmlFor="email-tone">Tone</label>
-
+            <label>Tone</label>
             <select
-              id="email-tone"
               value={tone}
-              onChange={(event) => setTone(event.target.value as EmailTone)}
+              onChange={(e) => setTone(e.target.value as EmailTone)}
             >
-              {TONES.map((item) => (
-                <option key={item} value={item}>
-                  {item}
+              {TONES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
                 </option>
               ))}
             </select>
           </div>
         </div>
-
-        {error && <p className="modal-error">{error}</p>}
-
+        {errorMessage && <p className="modal-error">{errorMessage}</p>}
         <button
           type="button"
           className="primary-button email-generate-btn"
@@ -174,51 +108,43 @@ export default function EmailGeneratorModal({
             <span className="spinner dark" />
           ) : (
             <>
-              <Sparkles size={16} />
+              <Sparkles size={16} />{" "}
               {draft ? "Regenerate draft" : "Generate email"}
             </>
           )}
         </button>
-
         {draft && !loading && (
           <div className="email-draft">
-            <label htmlFor="email-subject">Subject</label>
-
-            <input id="email-subject" value={draft.subject} readOnly />
-
-            <label htmlFor="email-body">Body</label>
-
+            <label>Subject</label>
+            <input value={draft.subject} readOnly />
+            <label>Body</label>
             <textarea
-              id="email-body"
               className="email-body"
               value={draft.body}
               readOnly
               rows={10}
             />
-
             <div className="modal-footer">
               <button type="button" className="outline-button" onClick={copy}>
                 {copied ? (
                   <>
-                    <Check size={16} />
-                    Copied
+                    <Check size={16} /> Copied
                   </>
                 ) : (
                   <>
-                    <Copy size={16} />
-                    Copy
+                    <Copy size={16} /> Copy
                   </>
                 )}
               </button>
             </div>
           </div>
         )}
-
         <p className="modal-footnote">
-          <Sparkles size={13} />
-          Generated by Google Gemini
+          <Sparkles size={13} /> Generated by Google Gemini
         </p>
       </div>
     </div>
   );
-}
+};
+
+export default EmailGeneratorModal;

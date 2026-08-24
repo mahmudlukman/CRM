@@ -1,27 +1,24 @@
 import { useMemo, useState } from "react";
-import FollowUpModal from "../../../../components/FollowUpModal";
-import type {
-  FollowUp,
-  FollowUpPayload,
-  FollowUpStatus,
-} from "../../../../@types/crm";
-import type { RowMenuItem } from "../../../../types/ui";
 import {
   useCreateFollowUpMutation,
   useDeleteFollowUpMutation,
   useGetAllFollowUpsQuery,
   useUpdateFollowUpMutation,
 } from "../../redux/features/followUp/followUpApi";
-import {
-  computeFollowUpStats,
-  groupFollowUps,
-} from "../../utils/followUpHelpers";
+import { computeFollowUpStats, groupFollowUps } from "../../utils/followUp";
 import type { FollowUpTab } from "./constants";
 import FollowUpsHeader from "./FollowUpsHeader";
 import FollowUpsStatsRow from "./FollowUpsStatsRow";
 import ProgressCard from "./ProgressCard";
 import TabRow from "./TabRow";
 import TaskList from "./TaskList";
+import type {
+  FollowUp,
+  FollowUpPayload,
+  FollowUpStatus,
+} from "../../@types/crm";
+import type { RowMenuItem } from "../../@types/lead";
+import { FollowUpModal } from "../ui/FollowUpModal";
 
 const FollowUps = () => {
   const { data, isLoading } = useGetAllFollowUpsQuery();
@@ -29,7 +26,8 @@ const FollowUps = () => {
   const [updateFollowUp] = useUpdateFollowUpMutation();
   const [deleteFollowUp] = useDeleteFollowUpMutation();
 
-  const tasks = data?.followUps ?? [];
+  const followUps = data?.followUps;
+  const tasks = useMemo(() => followUps ?? [], [followUps]);
 
   const [tab, setTab] = useState<FollowUpTab>("All");
   const [modalTask, setModalTask] = useState<FollowUp | undefined>(undefined);
@@ -41,7 +39,8 @@ const FollowUps = () => {
     : 0;
 
   const tabFiltered = useMemo(
-    () => (tab === "All" ? tasks : tasks.filter((t) => t.status === tab)),
+    () =>
+      tab === "All" ? tasks : tasks.filter((t: FollowUp) => t.status === tab),
     [tasks, tab],
   );
 
@@ -70,9 +69,6 @@ const FollowUps = () => {
     await deleteFollowUp(task._id).unwrap();
   }
 
-  // updateFollowUp's onQueryStarted (in followUpsApi.ts) patches the
-  // getAllFollowUps cache optimistically, so cycling status here reads
-  // instantly just like the original component's manual setTasks() did.
   function setStatus(task: FollowUp, status: FollowUpStatus) {
     updateFollowUp({ id: task._id, data: { status } });
   }
@@ -89,14 +85,28 @@ const FollowUps = () => {
 
   function rowMenuItems(task: FollowUp): RowMenuItem[] {
     return [
-      { label: "Mark pending", onClick: () => setStatus(task, "Pending") },
+      {
+        label: "Mark pending",
+        icon: null,
+        onClick: () => setStatus(task, "Pending"),
+      },
       {
         label: "Mark in progress",
+        icon: null,
         onClick: () => setStatus(task, "In Progress"),
       },
-      { label: "Mark completed", onClick: () => setStatus(task, "Completed") },
-      { label: "Edit", onClick: () => openEdit(task) },
-      { label: "Delete", onClick: () => handleDelete(task), danger: true },
+      {
+        label: "Mark completed",
+        icon: null,
+        onClick: () => setStatus(task, "Completed"),
+      },
+      { label: "Edit", icon: null, onClick: () => openEdit(task) },
+      {
+        label: "Delete",
+        icon: null,
+        onClick: () => handleDelete(task),
+        danger: true,
+      },
     ];
   }
 

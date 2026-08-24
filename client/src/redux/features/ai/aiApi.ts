@@ -48,4 +48,5 @@ export const {
   useGetPipelineInsightQuery,
   useGetLeadSummaryQuery,
   useGenerateLeadEmailMutation,
+  useLazyGetLeadSummaryQuery,
 } = aiApi;

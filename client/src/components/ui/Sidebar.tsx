@@ -9,7 +9,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext.jsx";
+import { useLogoutMutation } from "../../redux/features/auth/authApi";
 
 const items: Array<[typeof LayoutGrid, string]> = [
   [LayoutGrid, "/"],
@@ -22,8 +22,18 @@ const items: Array<[typeof LayoutGrid, string]> = [
 ];
 
 export const Sidebar = () => {
-  const { logout } = useAuth();
+  const [logout] = useLogoutMutation();
   const navigate = useNavigate();
+
+  const signOut = async () => {
+    try {
+      await logout({}).unwrap();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+
   return (
     <aside className="fixed bottom-0 left-0 z-30 flex h-16 w-full items-center justify-around border-t border-line bg-white/95 backdrop-blur lg:bottom-auto lg:top-28 lg:h-[calc(100vh-9rem)] lg:w-16 lg:flex-col lg:border-r lg:border-t-0">
       <div className="flex items-center gap-2 lg:flex-col lg:gap-5">
@@ -40,10 +50,7 @@ export const Sidebar = () => {
       </div>
       <button
         className="side-link hidden lg:flex"
-        onClick={() => {
-          logout();
-          navigate("/login");
-        }}
+        onClick={signOut}
         aria-label="Log out"
       >
         <LogOut size={21} />

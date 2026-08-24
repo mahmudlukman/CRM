@@ -1,6 +1,5 @@
 import { Building2, Mail, Pencil, Phone, Star, Trash2, X } from "lucide-react";
-
-import type { Contact } from "../../@types/contact";
+import type { Contact } from "../../@types/crm";
 
 interface ContactDrawerProps {
   contact: Contact;
@@ -19,13 +18,13 @@ function initialsOf(name = ""): string {
     .join("");
 }
 
-export default function ContactDrawer({
+const ContactDrawer = ({
   contact,
   onClose,
   onEdit,
   onDelete,
   onToggleFavorite,
-}: ContactDrawerProps) {
+}: ContactDrawerProps) => {
   const formattedDate = contact.createdAt
     ? new Date(contact.createdAt).toLocaleDateString("en-US", {
         day: "2-digit",
@@ -156,4 +155,6 @@ export default function ContactDrawer({
       </aside>
     </div>
   );
-}
+};
+
+export default ContactDrawer;

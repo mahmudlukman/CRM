@@ -114,7 +114,7 @@ const LeadsTable = ({
                     <span className="pill">{lead.source}</span>
                   </td>
                   <td>
-                    <b>${Number(lead.value || 0).toLocaleString("en-US")}</b>
+                    <b>₦{Number(lead.value || 0).toLocaleString("en-NG")}</b>
                   </td>
                   <td>{relativeTime(lead.updatedAt || lead.createdAt)}</td>
                   <td onClick={(e) => e.stopPropagation()}>
