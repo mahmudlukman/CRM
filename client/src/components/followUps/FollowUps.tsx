@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Loader2 } from "lucide-react";
 import {
   useCreateFollowUpMutation,
   useDeleteFollowUpMutation,
@@ -110,8 +111,21 @@ const FollowUps = () => {
     ];
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-slate-50/50">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
+          <p className="text-xs font-semibold text-slate-500">
+            Loading follow-ups...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="simple-page" style={{ maxWidth: "1320px" }}>
+    <div className="mx-auto min-h-screen max-w-[1320px] bg-gradient-to-br from-slate-50 via-slate-100/60 to-slate-50 p-4 sm:p-6 lg:p-8 space-y-6">
       {showModal && (
         <FollowUpModal
           task={modalTask}
@@ -120,24 +134,29 @@ const FollowUps = () => {
         />
       )}
 
+      {/* Header */}
       <FollowUpsHeader onAddTask={openCreate} />
 
+      {/* Stats Summary Grid */}
       <FollowUpsStatsRow stats={stats} />
 
+      {/* Completion Progress Bar */}
       <ProgressCard
         completed={stats.completed}
         total={stats.total}
         percentDone={percentDone}
       />
 
-      <TabRow tab={tab} onTabChange={setTab} />
-
-      <TaskList
-        groups={groups}
-        loading={isLoading}
-        onCycleStatus={cycleStatus}
-        rowMenuItems={rowMenuItems}
-      />
+      {/* Filter Tabs & Main Task List */}
+      <div className="space-y-4">
+        <TabRow tab={tab} onTabChange={setTab} />
+        <TaskList
+          groups={groups}
+          loading={isLoading}
+          onCycleStatus={cycleStatus}
+          rowMenuItems={rowMenuItems}
+        />
+      </div>
     </div>
   );
 };

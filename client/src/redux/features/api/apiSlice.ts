@@ -5,56 +5,33 @@ import type {
   FetchArgs,
   FetchBaseQueryError,
 } from "@reduxjs/toolkit/query";
-import type { User } from "../../../@types";
+import type { LoadUserResponse, RefreshTokenResponse } from "../../../@types";
 
-// Base query
 const baseQuery = fetchBaseQuery({
   baseUrl:
     import.meta.env.VITE_PUBLIC_SERVER_URI || "http://localhost:8000/api/v1/",
   credentials: "include",
 });
 
-// Custom base query with automatic token refresh
 const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
-  // Initial request
   let result = await baseQuery(args, api, extraOptions);
 
-  // If we get a 401 error, try to refresh the token
-  if (result.error && result.error.status === 401) {
-    // Try to refresh the token
+  if (result.error?.status === 401) {
     const refreshResult = await baseQuery(
-      {
-        url: "refresh-token",
-        method: "POST",
-        credentials: "include",
-      },
+      { url: "refresh-token", method: "POST" },
       api,
       extraOptions,
     );
 
     if (refreshResult.data) {
-      // Type the refresh result data
-      const refreshData = refreshResult.data as {
-        accessToken: string;
-        user: User;
-      };
-
-      // Update the Redux state with new token and user
-      api.dispatch(
-        userLoggedIn({
-          accessToken: refreshData.accessToken,
-          user: refreshData.user,
-        }),
-      );
-
-      // Retry the original query with new token
+      const { accessToken, user } = refreshResult.data as RefreshTokenResponse;
+      api.dispatch(userLoggedIn({ accessToken, user }));
       result = await baseQuery(args, api, extraOptions);
     } else {
-      // Refresh failed - log out user
       api.dispatch(userLoggedOut());
     }
   }
@@ -63,17 +40,12 @@ const baseQueryWithReauth: BaseQueryFn<
 };
 
 export const apiSlice = createApi({
-  tagTypes: ["User", "Note", "Contact", "Ai", "Lead", "FollowUp"],
   reducerPath: "api",
+  tagTypes: ["User", "Invoice", "Customer", "Ai", "Analytics"],
   baseQuery: baseQueryWithReauth,
   endpoints: (builder) => ({
-    // Load user endpoint
-    loadUser: builder.query({
-      query: () => ({
-        url: "me",
-        method: "GET",
-        credentials: "include",
-      }),
+    loadUser: builder.query<LoadUserResponse, void>({
+      query: () => ({ url: "me", method: "GET" }),
       async onQueryStarted(_arg, { queryFulfilled, dispatch }) {
         try {
           const result = await queryFulfilled;
@@ -83,20 +55,15 @@ export const apiSlice = createApi({
               user: result.data.user,
             }),
           );
-        } catch (error) {
-          console.error("loadUser error:", error);
+        } catch {
+          dispatch(userLoggedOut());
         }
       },
       providesTags: ["User"],
     }),
 
-    // Refresh token endpoint (explicit call if needed)
-    refreshToken: builder.mutation({
-      query: () => ({
-        url: "refresh-token",
-        method: "POST",
-        credentials: "include",
-      }),
+    refreshToken: builder.mutation<RefreshTokenResponse, void>({
+      query: () => ({ url: "refresh-token", method: "POST" }),
       async onQueryStarted(_arg, { queryFulfilled, dispatch }) {
         try {
           const result = await queryFulfilled;

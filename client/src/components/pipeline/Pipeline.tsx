@@ -56,7 +56,8 @@ const Pipeline = () => {
   };
 
   return (
-    <div className="simple-page pipeline-page" style={{ maxWidth: "none" }}>
+    <div className="w-full p-4 sm:p-6 lg:p-8 flex flex-col gap-6 font-sans min-h-screen">
+      {/* Lead Create Dialog */}
       {showModal && (
         <LeadModal
           onClose={() => setShowModal(false)}
@@ -64,14 +65,17 @@ const Pipeline = () => {
         />
       )}
 
+      {/* Header section with summary metrics & CTA */}
       <PipelineHeader
         leadCount={leads.length}
         totalValue={stats.totalValue}
         onCreateDeal={() => setShowModal(true)}
       />
 
+      {/* Key performance metrics row */}
       <PipelineStatsRow stats={stats} />
 
+      {/* Drag and drop Kanban pipeline board */}
       <KanbanBoard
         grouped={grouped}
         columnTotals={columnTotals}

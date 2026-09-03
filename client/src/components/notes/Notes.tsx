@@ -8,12 +8,13 @@ import {
 import { computeNoteCounts, getLinkedLead } from "../../utils/noteHelpers";
 import NotesGrid from "./NotesGrid";
 import NotesHeader from "./NotesHeader";
-import type { NoteFilter, RowMenuItem } from "./types";
+import type { NoteFilter } from "./types";
 import NotesStatsRow from "./NoteStatsRow";
 import NotesToolbar from "./NoteToolbar";
 import { useGetLeadsQuery } from "../../redux/features/lead/leadApi";
 import type { Note, NotePayload } from "../../@types/crm";
 import { NoteModal } from "../ui/NoteModal";
+import type { RowMenuItem } from "../ui/RowMenu";
 
 const Notes = () => {
   const { data: notesData, isLoading: notesLoading } = useGetNotesQuery();
@@ -83,14 +84,23 @@ const Notes = () => {
 
   const rowMenuItems = (note: Note): RowMenuItem[] => {
     return [
-      { label: note.pinned ? "Unpin" : "Pin", onClick: () => togglePin(note) },
-      { label: "Edit", onClick: () => openEdit(note) },
-      { label: "Delete", onClick: () => handleDelete(note), danger: true },
+      {
+        label: note.pinned ? "Unpin" : "Pin",
+        icon: note.pinned ? "📌" : "📍",
+        onClick: () => togglePin(note),
+      },
+      { label: "Edit", icon: "✏️", onClick: () => openEdit(note) },
+      {
+        label: "Delete",
+        icon: "🗑️",
+        onClick: () => handleDelete(note),
+        danger: true,
+      },
     ];
   };
 
   return (
-    <div className="simple-page" style={{ maxWidth: "1320px" }}>
+    <div className="mx-auto max-w-[1320px] w-full p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
       {showModal && (
         <NoteModal
           note={modalNote as ComponentProps<typeof NoteModal>["note"]}

@@ -1,5 +1,5 @@
-import { LockKeyhole } from "lucide-react";
-import { useState } from "react";
+import { Loader2, LockKeyhole } from "lucide-react";
+import { useState, type FormEvent } from "react";
 import { useUpdateUserPasswordMutation } from "../../redux/features/user/userApi";
 import type { PasswordFormValues } from "../../@types/crm";
 
@@ -14,7 +14,7 @@ export default function SecuritySettingsCard() {
   const [updateUserPassword, { isLoading: changingPassword }] =
     useUpdateUserPasswordMutation();
 
-  async function updatePassword(event: React.FormEvent<HTMLFormElement>) {
+  async function updatePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setPasswordError("");
     setPasswordMessage("");
@@ -29,7 +29,7 @@ export default function SecuritySettingsCard() {
         oldPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword,
       }).unwrap();
-      setPasswordMessage("Password updated");
+      setPasswordMessage("Password updated successfully");
       setPasswordForm({
         currentPassword: "",
         newPassword: "",
@@ -50,37 +50,51 @@ export default function SecuritySettingsCard() {
   }
 
   return (
-    <section className="settings-card">
-      <div className="section-title">
-        <span className="soft-icon">
+    <section className="flex flex-col gap-6 p-6 rounded-2xl border border-slate-200/80 bg-white/80 backdrop-blur-xl shadow-xs">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-cyan-50 text-cyan-600 shrink-0">
           <LockKeyhole size={20} />
-        </span>
-        <div>
-          <h2>Security</h2>
-          <p>Change your password.</p>
+        </div>
+        <div className="flex flex-col">
+          <h2 className="text-lg font-bold text-slate-900 tracking-tight">
+            Security
+          </h2>
+          <p className="text-xs font-medium text-slate-500">
+            Change your password.
+          </p>
         </div>
       </div>
 
-      <form onSubmit={updatePassword}>
-        <label>Current password</label>
-        <input
-          placeholder="Current password"
-          type="password"
-          value={passwordForm.currentPassword}
-          onChange={(e) =>
-            setPasswordForm({
-              ...passwordForm,
-              currentPassword: e.target.value,
-            })
-          }
-        />
+      <form onSubmit={updatePassword} className="flex flex-col gap-5">
+        {/* Current Password */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-slate-700">
+            Current password
+          </label>
+          <input
+            type="password"
+            placeholder="Current password"
+            value={passwordForm.currentPassword}
+            onChange={(e) =>
+              setPasswordForm({
+                ...passwordForm,
+                currentPassword: e.target.value,
+              })
+            }
+            className="px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all"
+          />
+        </div>
 
-        <div className="two-col">
-          <div>
-            <label>New password</label>
+        {/* Two Column Grid: New Password & Confirm Password */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-slate-700">
+              New password
+            </label>
             <input
-              placeholder="Min. 6 characters"
               type="password"
+              placeholder="Min. 6 characters"
               value={passwordForm.newPassword}
               onChange={(e) =>
                 setPasswordForm({
@@ -88,13 +102,17 @@ export default function SecuritySettingsCard() {
                   newPassword: e.target.value,
                 })
               }
+              className="px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all"
             />
           </div>
-          <div>
-            <label>Confirm new password</label>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-slate-700">
+              Confirm new password
+            </label>
             <input
-              placeholder="Re-enter password"
               type="password"
+              placeholder="Re-enter password"
               value={passwordForm.confirmPassword}
               onChange={(e) =>
                 setPasswordForm({
@@ -102,23 +120,37 @@ export default function SecuritySettingsCard() {
                   confirmPassword: e.target.value,
                 })
               }
+              className="px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all"
             />
           </div>
         </div>
 
-        {passwordError && <p className="modal-error">{passwordError}</p>}
+        {/* Error Alert */}
+        {passwordError && (
+          <p className="text-xs font-medium text-red-600 bg-red-50 px-3 py-2 rounded-lg border border-red-200/60 self-start">
+            {passwordError}
+          </p>
+        )}
 
-        <div className="form-footer">
-          {passwordMessage && <span>{passwordMessage}</span>}
+        {/* Form Action Footer */}
+        <div className="flex items-center justify-between gap-4 pt-3 border-t border-slate-100">
+          <div className="min-h-[20px]">
+            {passwordMessage && (
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-md text-emerald-700 bg-emerald-50 border border-emerald-200/60">
+                {passwordMessage}
+              </span>
+            )}
+          </div>
+
           <button
             type="submit"
-            className="primary-button small"
             disabled={changingPassword}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 active:scale-95 text-white text-xs font-semibold shadow-xs shadow-cyan-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0"
           >
             {changingPassword ? (
-              <span className="spinner dark" />
+              <Loader2 size={16} className="animate-spin" />
             ) : (
-              "Update password"
+              <span>Update password</span>
             )}
           </button>
         </div>

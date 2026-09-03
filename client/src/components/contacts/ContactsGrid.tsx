@@ -1,8 +1,7 @@
 import { Mail, Phone, Star } from "lucide-react";
 import type { Contact } from "../../@types/crm";
 import { colorFor, initialsOf } from "../../utils/leadHelpers";
-import type { RowMenuItem } from "./types";
-import RowMenu from "../ui/RowMenu";
+import RowMenu, { type RowMenuItem } from "../ui/RowMenu";
 
 interface ContactsGridProps {
   contacts: Contact[];

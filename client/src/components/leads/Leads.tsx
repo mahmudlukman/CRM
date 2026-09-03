@@ -15,12 +15,18 @@ import LeadsGrid from "./LeadsGrid";
 import LeadsStatsRow from "./LeadsStatsRow";
 import LeadsTable from "./LeadsTable";
 import LeadsToolbar from "./LeadsToolbar";
-import type { LeadsView, RowMenuItem, SortDir, SortField } from "./types";
-import type { Lead, LeadPayload } from "../../@types/crm";
+import type {
+  Lead,
+  LeadPayload,
+  LeadsView,
+  SortDirection,
+  SortField,
+} from "../../@types/crm";
 import { downloadBlob } from "../../utils/downloadBlob";
 import LeadModal from "../ui/LeadModal";
-import LeadDrawer from "../ui/LeadDrawer";
 import LeadsHeader from "./LeadsHeader";
+import { LeadDrawer } from "../ui/LeadDrawer";
+import type { RowMenuItem } from "../ui/RowMenu";
 
 const Leads = () => {
   const { data, isLoading } = useGetLeadsQuery();
@@ -37,7 +43,7 @@ const Leads = () => {
   const [priorityFilter, setPriorityFilter] = useState("");
   const [sourceFilter, setSourceFilter] = useState("");
   const [sortField, setSortField] = useState<SortField>("updatedAt");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [sortDir, setSortDir] = useState<SortDirection>("desc");
   const [view, setView] = useState<LeadsView>("table");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [modalLead, setModalLead] = useState<Lead | undefined>(undefined);

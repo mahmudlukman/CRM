@@ -15,9 +15,11 @@ import ContactsHeader from "./ContactsHeader";
 import ContactsStatsRow from "./ContactsStatsRow";
 import ContactsTable from "./ContactsTable";
 import ContactsToolbar from "./ContactsToolbar";
-import type { ContactsView, RowMenuItem } from "./types";
+import type { ContactsView } from "./types";
 import ContactModal from "../ui/ContactModal";
 import ContactDrawer from "../ui/ContactDrawer";
+import type { RowMenuItem } from "../ui/RowMenu";
+import { Pencil, Trash2 } from "lucide-react";
 
 export default function Contacts() {
   const { data, isLoading } = useGetContactsQuery();
@@ -25,7 +27,8 @@ export default function Contacts() {
   const [updateContact] = useUpdateContactMutation();
   const [deleteContact] = useDeleteContactMutation();
 
-  const contacts = data?.contacts ?? [];
+  const fetchedContacts = data?.contacts;
+  const contacts = useMemo(() => fetchedContacts ?? [], [fetchedContacts]);
 
   const [search, setSearch] = useState("");
   const [tagFilter, setTagFilter] = useState("");
@@ -36,9 +39,6 @@ export default function Contacts() {
   const [showModal, setShowModal] = useState(false);
   const [activeContactId, setActiveContactId] = useState<string | null>(null);
 
-  // Derived from the fetched list rather than held as its own copy, so any
-  // cache update — an edit, a favorite toggle, an optimistic patch — shows
-  // up in the drawer automatically instead of needing manual syncing.
   const activeContact = useMemo(
     () => contacts.find((c) => c._id === activeContactId) ?? null,
     [contacts, activeContactId],
@@ -63,7 +63,7 @@ export default function Contacts() {
     }
     return [...list].sort((a, b) => {
       if (!!b.favorite !== !!a.favorite) return b.favorite ? 1 : -1;
-      return a.name.localeCompare(b.name);
+      return a.name.localeCompare(a.name);
     });
   }, [contacts, search, tagFilter]);
 
@@ -102,13 +102,23 @@ export default function Contacts() {
 
   function rowMenuItems(contact: Contact): RowMenuItem[] {
     return [
-      { label: "Edit", onClick: () => openEdit(contact) },
-      { label: "Delete", onClick: () => handleDelete(contact), danger: true },
+      {
+        label: "Edit",
+        icon: <Pencil size={16} />,
+        onClick: () => openEdit(contact),
+      },
+      {
+        label: "Delete",
+        icon: <Trash2 size={16} />,
+        onClick: () => handleDelete(contact),
+        danger: true,
+      },
     ];
   }
 
   return (
-    <div className="simple-page" style={{ maxWidth: "1320px" }}>
+    <div className="mx-auto w-full max-w-[1320px] p-4 sm:p-6 lg:p-8 flex flex-col gap-6 font-sans">
+      {/* Contact Form Modal */}
       {showModal && (
         <ContactModal
           contact={modalContact}
@@ -116,6 +126,8 @@ export default function Contacts() {
           onSubmit={handleSubmit}
         />
       )}
+
+      {/* Detail View Drawer */}
       {activeContact && (
         <ContactDrawer
           contact={activeContact}
@@ -126,10 +138,13 @@ export default function Contacts() {
         />
       )}
 
+      {/* Header section with title and CTA */}
       <ContactsHeader onAddContact={openCreate} />
 
+      {/* Stat indicators card grid */}
       <ContactsStatsRow stats={stats} />
 
+      {/* Search and Tag filter toolbar */}
       <ContactsToolbar
         search={search}
         onSearchChange={setSearch}
@@ -143,6 +158,7 @@ export default function Contacts() {
         onViewChange={setView}
       />
 
+      {/* View Switcher: Grid vs Table */}
       {view === "grid" ? (
         <ContactsGrid
           contacts={filtered}

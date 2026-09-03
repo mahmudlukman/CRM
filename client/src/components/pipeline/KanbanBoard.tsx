@@ -28,7 +28,7 @@ const KanbanBoard = ({
   onDeleteLead,
 }: KanbanBoardProps) => {
   return (
-    <div className="kanban">
+    <div className="flex gap-4 overflow-x-auto pb-4 pt-1 items-start min-h-[calc(100vh-220px)] scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
       {COLUMNS.map((column) => (
         <KanbanColumn
           key={column}

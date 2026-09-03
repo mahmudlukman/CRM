@@ -1,9 +1,20 @@
 import type { ReactNode } from "react";
 
-export interface RootState {
-  auth: {
-    user: User | null;
-  };
+export interface AuthState {
+  token: string;
+  user: User | null;
+  isInitialized: boolean;
+}
+
+export interface LoadUserResponse {
+  success: boolean;
+  user: User;
+  accessToken: string;
+}
+
+export interface RefreshTokenResponse {
+  accessToken: string;
+  user: User;
 }
 
 export interface Avatar {

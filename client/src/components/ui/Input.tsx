@@ -19,36 +19,36 @@ const Input = ({
   disabled,
 }: InputProps) => {
   const [showPassword, setShowPassword] = useState(false);
-
-  const toggleShowPassword = () => {
-    setShowPassword(!showPassword);
-  };
+  const isPassword = type === "password";
 
   return (
-    <div className="w-full">
-      <label className="text-[13px] text-slate-800 font-bold block mb-2">
+    <div className="w-full space-y-2">
+      <label className="text-xs font-semibold tracking-wide text-slate-300 uppercase">
         {label}
       </label>
 
-      <div className="flex items-center border border-[#e8ebf0] rounded-[16px] px-3 bg-white focus-within:border-[#20aeea] focus-within:shadow-[0_0_0_4px_rgba(32,174,234,0.12)]">
+      <div className="relative flex items-center rounded-xl bg-slate-950/60 border border-slate-800 transition-all duration-200 focus-within:border-cyan-500 focus-within:ring-2 focus-within:ring-cyan-500/20">
         <input
-          type={
-            type === "password" ? (showPassword ? "text" : "password") : type
-          }
+          type={isPassword ? (showPassword ? "text" : "password") : type}
           placeholder={placeholder}
-          className="w-full bg-transparent outline-none text-sm text-[#101828] placeholder:text-[#9aa3af] h-[48px] !border-0 !p-0 !shadow-none focus:!border-0 focus:!shadow-none"
           value={value}
           onChange={onChange}
           disabled={disabled}
+          className="w-full h-11 px-4 bg-transparent outline-none text-sm text-slate-100 placeholder:text-slate-400 disabled:opacity-50"
         />
 
-        {type === "password" && (
+        {isPassword && (
           <button
             type="button"
-            onClick={toggleShowPassword}
-            className="ml-2 text-[#9aa3af] hover:text-[#087fb8] flex-shrink-0"
+            onClick={() => setShowPassword((prev) => !prev)}
+            tabIndex={-1}
+            className="pr-4 text-slate-400 hover:text-slate-200 transition-colors focus:outline-none"
           >
-            {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+            {showPassword ? (
+              <Eye className="w-4 h-4" />
+            ) : (
+              <EyeOff className="w-4 h-4" />
+            )}
           </button>
         )}
       </div>

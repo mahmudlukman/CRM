@@ -9,6 +9,8 @@ import {
   Sparkles,
   Trash2,
   X,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import EmailGeneratorModal from "./EmailGeneratorModal";
 import type { Lead } from "../../@types/crm";
@@ -21,25 +23,24 @@ interface LeadDrawerProps {
   onDelete: (lead: Lead) => void | Promise<void>;
 }
 
-function initialsOf(name = ""): string {
+const initialsOf = (name = ""): string => {
   return name
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0].toUpperCase())
     .join("");
-}
+};
 
-export default function LeadDrawer({
+export const LeadDrawer = ({
   lead,
   onClose,
   onEdit,
   onDelete,
-}: LeadDrawerProps) {
+}: LeadDrawerProps) => {
   const [getLeadSummary, { data: summary, isLoading: loading, error }] =
     useLazyGetLeadSummaryQuery();
   const [showEmailModal, setShowEmailModal] = useState(false);
-
   const [analyzedLeadId, setAnalyzedLeadId] = useState<string | null>(null);
 
   const isCurrentSummary = analyzedLeadId === lead._id;
@@ -47,18 +48,18 @@ export default function LeadDrawer({
   const summaryError =
     error && isCurrentSummary ? "Couldn't analyze this lead right now." : "";
 
-  function analyze() {
+  const analyze = () => {
     setAnalyzedLeadId(lead._id);
     getLeadSummary(lead._id);
-  }
+  };
 
-  function handleEdit() {
+  const handleEdit = () => {
     onEdit(lead);
-  }
+  };
 
-  async function handleDelete() {
+  const handleDelete = async () => {
     await onDelete(lead);
-  }
+  };
 
   const priority = lead.priority || "Medium";
   const formattedValue = Number(lead.value || 0).toLocaleString("en-US");
@@ -70,15 +71,52 @@ export default function LeadDrawer({
       })
     : "Unknown";
 
+  const getStatusBadgeStyle = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "new":
+        return "bg-sky-50 text-sky-700 border-sky-200/80";
+      case "contacted":
+        return "bg-amber-50 text-amber-700 border-amber-200/80";
+      case "qualified":
+        return "bg-emerald-50 text-emerald-700 border-emerald-200/80";
+      case "lost":
+        return "bg-rose-50 text-rose-700 border-rose-200/80";
+      default:
+        return "bg-slate-100 text-slate-700 border-slate-200";
+    }
+  };
+
+  const getPriorityBadgeStyle = (prio: string) => {
+    switch (prio.toLowerCase()) {
+      case "high":
+        return "bg-rose-50 text-rose-700 border-rose-200/80";
+      case "medium":
+        return "bg-amber-50 text-amber-700 border-amber-200/80";
+      case "low":
+        return "bg-slate-100 text-slate-700 border-slate-200";
+      default:
+        return "bg-slate-100 text-slate-700 border-slate-200";
+    }
+  };
+
   return (
     <>
-      <div className="drawer-overlay" onClick={onClose}>
-        <aside className="drawer" onClick={(event) => event.stopPropagation()}>
-          <div className="drawer-header">
-            <h2>Lead details</h2>
+      <div
+        className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex justify-end transition-opacity duration-200"
+        onClick={onClose}
+      >
+        <aside
+          className="w-full max-w-md bg-white/95 backdrop-blur-xl border-l border-slate-200/80 shadow-2xl h-full flex flex-col justify-between overflow-hidden"
+          onClick={(event) => event.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-slate-100">
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+              Lead details
+            </h2>
             <button
               type="button"
-              className="icon-btn"
+              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100/80 transition-colors cursor-pointer"
               onClick={onClose}
               aria-label="Close"
             >
@@ -86,130 +124,189 @@ export default function LeadDrawer({
             </button>
           </div>
 
-          <div className="drawer-body">
-            <div className="drawer-identity">
-              <span className="initial sky drawer-avatar">
+          {/* Body */}
+          <div className="p-6 space-y-6 overflow-y-auto flex-1">
+            {/* Identity */}
+            <div className="flex items-center gap-4">
+              <span className="w-12 h-12 rounded-2xl bg-gradient-to-br font-semibold from-cyan-500 to-blue-600 text-white flex items-center justify-center text-base shadow-sm shrink-0">
                 {initialsOf(lead.name)}
               </span>
-              <div>
-                <b>{lead.name}</b>
-                <p>{lead.company}</p>
+              <div className="min-w-0">
+                <b className="text-base font-bold text-slate-900 block truncate">
+                  {lead.name}
+                </b>
+                <p className="text-xs text-slate-500 truncate">
+                  {lead.company}
+                </p>
               </div>
             </div>
 
-            <div className="drawer-badges">
-              <span className={`badge ${lead.status.toLowerCase()}`}>
+            {/* Badges */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`px-2.5 py-1 text-xs font-semibold rounded-full border capitalize ${getStatusBadgeStyle(
+                  lead.status,
+                )}`}
+              >
                 {lead.status}
               </span>
-              <span className={`badge ${priority.toLowerCase()}`}>
+              <span
+                className={`px-2.5 py-1 text-xs font-semibold rounded-full border capitalize ${getPriorityBadgeStyle(
+                  priority,
+                )}`}
+              >
                 {priority} priority
               </span>
-              <span className="pill">{lead.source}</span>
+              <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-600 border border-slate-200/60">
+                {lead.source}
+              </span>
             </div>
 
-            <div className="drawer-value-box">
-              <span>Deal value</span>
-              <b>${formattedValue}</b>
+            {/* Value Box */}
+            <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Deal value
+              </span>
+              <b className="text-xl font-bold text-slate-900">
+                ${formattedValue}
+              </b>
             </div>
 
-            <div className="drawer-contact-list">
+            {/* Contact Information */}
+            <div className="space-y-3 text-sm text-slate-600">
               {lead.email && (
-                <div>
-                  <Mail size={16} />
-                  {lead.email}
+                <div className="flex items-center gap-3">
+                  <Mail size={16} className="text-slate-400 shrink-0" />
+                  <span className="truncate">{lead.email}</span>
                 </div>
               )}
 
               {lead.phone && (
-                <div>
-                  <Phone size={16} />
-                  {lead.phone}
+                <div className="flex items-center gap-3">
+                  <Phone size={16} className="text-slate-400 shrink-0" />
+                  <span>{lead.phone}</span>
                 </div>
               )}
 
-              <div>
-                <Building2 size={16} />
-                {lead.company}
+              <div className="flex items-center gap-3">
+                <Building2 size={16} className="text-slate-400 shrink-0" />
+                <span className="truncate">{lead.company}</span>
               </div>
             </div>
 
-            <div className="drawer-notes">
-              <span>Notes</span>
-              <p>{lead.notes || "No notes yet."}</p>
+            {/* Notes */}
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold text-slate-700">
+                Notes
+              </span>
+              <p className="text-xs text-slate-600 leading-relaxed p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 whitespace-pre-wrap">
+                {lead.notes || "No notes yet."}
+              </p>
             </div>
 
-            <div className="ai-summary-card">
-              <div className="ai-summary-head">
-                <span className="soft-icon">
-                  <Sparkles size={16} />
-                </span>
-
-                <b>AI Lead Summary</b>
+            {/* AI Summary Card */}
+            <div className="p-4 rounded-2xl bg-gradient-to-b from-cyan-50/50 to-blue-50/30 border border-cyan-100/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="p-1 rounded-lg bg-cyan-500/10 text-cyan-600">
+                    <Sparkles size={16} />
+                  </span>
+                  <b className="text-xs font-bold text-slate-900">
+                    AI Lead Summary
+                  </b>
+                </div>
 
                 {showLoading ? null : summary && isCurrentSummary ? (
                   <button
                     type="button"
-                    className="link-btn"
+                    className="p-1 text-slate-400 hover:text-cyan-600 transition-colors cursor-pointer"
                     onClick={analyze}
                     aria-label="Regenerate"
                   >
                     <RefreshCw size={14} />
                   </button>
                 ) : (
-                  <button type="button" className="link-btn" onClick={analyze}>
+                  <button
+                    type="button"
+                    className="text-xs font-semibold text-cyan-600 hover:text-cyan-700 transition-colors cursor-pointer"
+                    onClick={analyze}
+                  >
                     Analyze
                   </button>
                 )}
               </div>
 
               {showLoading && (
-                <div className="ai-loading small">
-                  <span className="spinner dark" />
+                <div className="flex items-center gap-2 text-xs text-slate-500 py-2 font-medium">
+                  <Loader2 size={14} className="animate-spin text-cyan-600" />
                   Analyzing…
                 </div>
               )}
 
-              {summaryError && <p className="modal-error">{summaryError}</p>}
+              {summaryError && (
+                <div className="flex items-center gap-2 text-xs text-rose-600 font-medium">
+                  <AlertCircle size={14} />
+                  <span>{summaryError}</span>
+                </div>
+              )}
 
               {summary && isCurrentSummary && !showLoading && (
-                <>
-                  <p className="ai-summary">{summary.summary}</p>
+                <div className="space-y-3">
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {summary.summary}
+                  </p>
 
-                  <div className="ai-summary-stats">
-                    <div>
-                      <span>Risk score</span>
-                      <b>{summary.riskScore}/100</b>
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div className="p-2.5 rounded-xl bg-white/80 border border-cyan-100">
+                      <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+                        Risk score
+                      </span>
+                      <b className="text-xs font-bold text-slate-800">
+                        {summary.riskScore}/100
+                      </b>
                     </div>
 
-                    <div>
-                      <span>Suggested priority</span>
-                      <b>{summary.suggestedPriority}</b>
+                    <div className="p-2.5 rounded-xl bg-white/80 border border-cyan-100">
+                      <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+                        Suggested priority
+                      </span>
+                      <b className="text-xs font-bold text-slate-800">
+                        {summary.suggestedPriority}
+                      </b>
                     </div>
                   </div>
 
-                  <div className="ai-callout">
-                    <Lightbulb size={15} />
+                  <div className="p-2.5 rounded-xl bg-white/80 border border-cyan-100 flex items-start gap-2 text-xs text-slate-700">
+                    <Lightbulb
+                      size={15}
+                      className="text-amber-500 shrink-0 mt-0.5"
+                    />
                     <span>
-                      <b>Next best action:</b> {summary.nextBestAction}
+                      <b className="font-semibold text-slate-900">
+                        Next best action:
+                      </b>{" "}
+                      {summary.nextBestAction}
                     </span>
                   </div>
-                </>
+                </div>
               )}
             </div>
 
+            {/* AI Email Button */}
             <button
               type="button"
-              className="outline-button full"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-colors shadow-xs cursor-pointer"
               onClick={() => setShowEmailModal(true)}
             >
-              <Sparkles size={16} />
+              <Sparkles size={16} className="text-cyan-600" />
               Generate AI email
             </button>
 
-            <div className="drawer-actions">
+            {/* Action Buttons */}
+            <div className="grid grid-cols-2 gap-3 pt-2">
               <button
                 type="button"
-                className="outline-button"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-colors shadow-xs cursor-pointer"
                 onClick={handleEdit}
               >
                 <Pencil size={16} />
@@ -218,7 +315,7 @@ export default function LeadDrawer({
 
               <button
                 type="button"
-                className="danger-button"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-rose-200/80 bg-rose-50/50 hover:bg-rose-100/60 text-rose-600 text-sm font-semibold transition-colors cursor-pointer"
                 onClick={handleDelete}
               >
                 <Trash2 size={16} />
@@ -226,7 +323,9 @@ export default function LeadDrawer({
               </button>
             </div>
 
-            <p className="drawer-footer-note">Added {addedDate}</p>
+            <p className="text-center text-[11px] text-slate-400 font-normal pt-2">
+              Added {addedDate}
+            </p>
           </div>
         </aside>
       </div>
@@ -239,4 +338,4 @@ export default function LeadDrawer({
       )}
     </>
   );
-}
+};

@@ -1,30 +1,47 @@
-// Shared frontend types mirroring the backend Mongoose models.
-// Dates and ids are strings here since that's what actually comes back
-// over JSON — the backend's ObjectId/Date types don't survive serialization.
+/* -------------------------------------------------------------------------- */
+/*                                   LEADS                                    */
+/* -------------------------------------------------------------------------- */
 
-export type LeadStatus = "New" | "Qualified" | "Proposal" | "Won" | "Lost";
-export type LeadPriority = "Low" | "Medium" | "High";
-export type LeadSource =
-  | "Cold Outreach"
-  | "Event"
-  | "Social"
-  | "Website"
-  | "Referral"
-  | "Other";
+export const STAGES = ["New", "Qualified", "Proposal", "Won", "Lost"] as const;
+
+export const PRIORITIES = ["Low", "Medium", "High"] as const;
+
+export const SOURCES = [
+  "Cold Outreach",
+  "Event",
+  "Social",
+  "Website",
+  "Referral",
+  "Other",
+] as const;
+
+export type LeadStatus = (typeof STAGES)[number];
+
+export type LeadPriority = (typeof PRIORITIES)[number];
+
+export type LeadSource = (typeof SOURCES)[number];
+
+export type LeadId = string;
 
 export interface Lead {
   _id: string;
   owner: string;
+
   name: string;
   company: string;
+
   email?: string;
   phone: string;
+
   status: LeadStatus;
   priority: LeadPriority;
   source: LeadSource;
+
   value: number;
+
   nextFollowUp?: string | null;
   notes?: string;
+
   createdAt: string;
   updatedAt: string;
 }
@@ -45,18 +62,48 @@ export type LeadPayload = Partial<
   >
 >;
 
+export interface LeadsResponse {
+  leads: Lead[];
+}
+
+export interface LeadResponse {
+  lead: Lead;
+}
+
+export interface LeadStats {
+  total: number;
+  openPipeline: number;
+  wonValue: number;
+  avgDealSize: number;
+}
+
+export type SortField = "name" | "value" | "updatedAt";
+
+export type SortDirection = "asc" | "desc";
+
+export type LeadsView = "table" | "grid";
+
+/* -------------------------------------------------------------------------- */
+/*                                FOLLOW UPS                                  */
+/* -------------------------------------------------------------------------- */
+
 export type FollowUpPriority = "Low" | "Medium" | "High";
+
 export type FollowUpStatus = "Pending" | "In Progress" | "Completed";
 
 export interface FollowUp {
   _id: string;
   owner: string;
+
   title: string;
   description: string;
   relatedTo: string;
+
   dueDate?: string;
+
   priority: FollowUpPriority;
   status: FollowUpStatus;
+
   createdAt: string;
   updatedAt: string;
 }
@@ -73,6 +120,10 @@ export interface FollowUpGroup {
   items: FollowUp[];
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                   NOTES                                    */
+/* -------------------------------------------------------------------------- */
+
 export interface NoteLeadRef {
   _id: string;
   name: string;
@@ -82,11 +133,17 @@ export interface NoteLeadRef {
 export interface Note {
   _id: string;
   owner: string;
+
   content: string;
-  // Populated with { _id, name, company } when a lead is linked, plain
-  // string id if unpopulated, or null if no lead is linked.
+
+  /**
+   * Populated with { _id, name, company } when a lead is linked,
+   * a plain string id if unpopulated, or null if no lead is linked.
+   */
   lead: NoteLeadRef | string | null;
+
   pinned: boolean;
+
   createdAt: string;
   updatedAt: string;
 }
@@ -95,17 +152,26 @@ export type NotePayload = Partial<Pick<Note, "content" | "pinned">> & {
   lead?: string | null;
 };
 
+/* -------------------------------------------------------------------------- */
+/*                                  CONTACTS                                  */
+/* -------------------------------------------------------------------------- */
+
 export interface Contact {
   _id: string;
   owner: string;
+
   name: string;
   title: string;
   company: string;
+
   email?: string;
   phone: string;
+
   tags: string[];
+
   favorite: boolean;
   notes: string;
+
   createdAt: string;
   updatedAt: string;
 }
@@ -123,6 +189,10 @@ export type ContactPayload = Partial<
     | "notes"
   >
 >;
+
+/* -------------------------------------------------------------------------- */
+/*                              DASHBOARD / OVERVIEW                          */
+/* -------------------------------------------------------------------------- */
 
 export interface OverviewStageBreakdown {
   name: LeadStatus;
@@ -165,7 +235,12 @@ export interface OverviewLeadActivity {
 }
 
 export interface OverviewEngagement {
-  months: { month: string; count: number; height: number }[];
+  months: {
+    month: string;
+    count: number;
+    height: number;
+  }[];
+
   growth: number;
 }
 
@@ -180,37 +255,58 @@ export interface OverviewMetrics {
 
 export interface Overview {
   metrics: OverviewMetrics;
+
   stages: OverviewStageBreakdown[];
+
   sources: OverviewSourceBreakdown[];
+
   topOpenDeals: OverviewTopOpenDeal[];
+
   topContacts: OverviewTopContact[];
+
   leadActivity: OverviewLeadActivity[];
+
   engagement: OverviewEngagement;
+
   followUps: FollowUp[];
 }
+
+/* -------------------------------------------------------------------------- */
+/*                              PIPELINE / AI                                 */
+/* -------------------------------------------------------------------------- */
 
 export interface PipelineInsight {
   healthScore: number;
   summary: string;
+
   observations: string[];
   recommendations: string[];
+
   generatedAt: string;
+
   source: "heuristic" | "gemini";
 }
 
 export interface LeadSummary {
   summary: string;
+
   riskScore: number;
+
   suggestedPriority: LeadPriority;
+
   nextBestAction: string;
+
   generatedAt: string;
+
   source: "heuristic" | "gemini";
 }
 
 export interface LeadEmail {
   subject: string;
   body: string;
+
   generatedAt: string;
+
   source: "heuristic" | "gemini";
 }
 
@@ -226,6 +322,10 @@ export type EmailTone =
   | "Friendly & professional"
   | "Concise & direct"
   | "Warm & casual";
+
+/* -------------------------------------------------------------------------- */
+/*                                  SETTINGS                                  */
+/* -------------------------------------------------------------------------- */
 
 export interface SettingsUser {
   name?: string;

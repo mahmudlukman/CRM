@@ -1,9 +1,5 @@
-import {
-  useState,
-  type FormEvent,
-  type KeyboardEvent,
-} from "react";
-import { X } from "lucide-react";
+import { useState, type FormEvent, type KeyboardEvent } from "react";
+import { X, AlertCircle, Loader2 } from "lucide-react";
 
 import type { Contact } from "../../@types/contact";
 
@@ -77,11 +73,8 @@ export default function ContactModal({
   });
 
   const [tags, setTags] = useState<string[]>(contact?.tags || []);
-
   const [tagInput, setTagInput] = useState<string>("");
-
   const [error, setError] = useState<string>("");
-
   const [saving, setSaving] = useState<boolean>(false);
 
   function setField<K extends keyof ContactForm>(
@@ -102,7 +95,6 @@ export default function ContactModal({
     }
 
     setTags((previous) => [...previous, clean]);
-
     setTagInput("");
   }
 
@@ -147,13 +139,21 @@ export default function ContactModal({
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(event) => event.stopPropagation()}>
-        <div className="flex items-start justify-between">
-          <div>
-            <h2>{contact ? "Edit Contact" : "Add Contact"}</h2>
-
-            <p className="modal-subtitle">
+    <div
+      className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 transition-opacity duration-200"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg bg-white/95 backdrop-blur-xl border border-slate-200/80 rounded-2xl shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto"
+        onClick={(event) => event.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+          <div className="space-y-1">
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+              {contact ? "Edit Contact" : "Add Contact"}
+            </h2>
+            <p className="text-xs text-slate-500 font-normal">
               {contact
                 ? "Update this person's details."
                 : "Add a new professional relationship."}
@@ -162,7 +162,7 @@ export default function ContactModal({
 
           <button
             type="button"
-            className="icon-btn"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100/80 transition-colors"
             onClick={onClose}
             aria-label="Close"
           >
@@ -170,80 +170,115 @@ export default function ContactModal({
           </button>
         </div>
 
-        <form onSubmit={submit}>
-          {error && <p className="modal-error">{error}</p>}
+        {/* Form Body */}
+        <form onSubmit={submit} className="space-y-4">
+          {error && (
+            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-rose-50 border border-rose-200/80 text-rose-600 text-xs font-medium">
+              <AlertCircle size={16} className="shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
 
-          <div className="two-col">
-            <div className="field">
-              <label htmlFor="contact-name">Full name</label>
-
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label
+                htmlFor="contact-name"
+                className="text-xs font-semibold text-slate-700"
+              >
+                Full name <span className="text-rose-500">*</span>
+              </label>
               <input
                 id="contact-name"
                 value={form.name}
                 onChange={(event) => setField("name", event.target.value)}
                 placeholder="Jane Doe"
+                className="w-full h-10 px-3.5 rounded-xl bg-slate-50/80 border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
               />
             </div>
 
-            <div className="field">
-              <label htmlFor="contact-title">Title</label>
-
+            <div className="space-y-1.5">
+              <label
+                htmlFor="contact-title"
+                className="text-xs font-semibold text-slate-700"
+              >
+                Title
+              </label>
               <input
                 id="contact-title"
                 value={form.title}
                 onChange={(event) => setField("title", event.target.value)}
                 placeholder="VP of Sales"
+                className="w-full h-10 px-3.5 rounded-xl bg-slate-50/80 border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
               />
             </div>
           </div>
 
-          <div className="field">
-            <label htmlFor="contact-company">Company</label>
-
+          <div className="space-y-1.5">
+            <label
+              htmlFor="contact-company"
+              className="text-xs font-semibold text-slate-700"
+            >
+              Company <span className="text-rose-500">*</span>
+            </label>
             <input
               id="contact-company"
               value={form.company}
               onChange={(event) => setField("company", event.target.value)}
               placeholder="Acme Corp"
+              className="w-full h-10 px-3.5 rounded-xl bg-slate-50/80 border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
             />
           </div>
 
-          <div className="two-col">
-            <div className="field">
-              <label htmlFor="contact-email">Email</label>
-
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label
+                htmlFor="contact-email"
+                className="text-xs font-semibold text-slate-700"
+              >
+                Email
+              </label>
               <input
                 id="contact-email"
                 type="email"
                 value={form.email}
                 onChange={(event) => setField("email", event.target.value)}
                 placeholder="jane@acme.com"
+                className="w-full h-10 px-3.5 rounded-xl bg-slate-50/80 border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
               />
             </div>
 
-            <div className="field">
-              <label htmlFor="contact-phone">Phone</label>
-
+            <div className="space-y-1.5">
+              <label
+                htmlFor="contact-phone"
+                className="text-xs font-semibold text-slate-700"
+              >
+                Phone
+              </label>
               <input
                 id="contact-phone"
                 value={form.phone}
                 onChange={(event) => setField("phone", event.target.value)}
                 placeholder="+1 555 0100"
+                className="w-full h-10 px-3.5 rounded-xl bg-slate-50/80 border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
               />
             </div>
           </div>
 
-          <div className="field">
-            <label>Tags</label>
+          {/* Tags Field */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-slate-700">Tags</label>
 
-            <div className="tag-input">
+            <div className="flex flex-wrap items-center gap-1.5 p-2 min-h-11 rounded-xl bg-slate-50/80 border border-slate-200 focus-within:border-cyan-500 focus-within:ring-2 focus-within:ring-cyan-500/20 transition-all">
               {tags.map((tag) => (
-                <span className="pill removable" key={tag}>
+                <span
+                  key={tag}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-700 border border-cyan-500/20 text-xs font-medium"
+                >
                   {tag}
-
                   <button
                     type="button"
                     onClick={() => removeTag(tag)}
+                    className="hover:text-cyan-900 transition-colors font-bold text-sm leading-none ml-0.5"
                     aria-label={`Remove ${tag} tag`}
                   >
                     ×
@@ -256,17 +291,19 @@ export default function ContactModal({
                 onChange={(event) => setTagInput(event.target.value)}
                 onKeyDown={onTagKeyDown}
                 placeholder={tags.length ? "" : "Add a tag and press Enter"}
+                className="flex-1 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none min-w-[120px] px-1"
               />
             </div>
 
-            <div className="tag-suggestions">
+            {/* Suggested Tags */}
+            <div className="flex flex-wrap gap-1.5 pt-1">
               {SUGGESTED_TAGS.filter((tag) => !tags.includes(tag)).map(
                 (tag: SuggestedTag) => (
                   <button
                     type="button"
                     key={tag}
-                    className="tag-suggestion"
                     onClick={() => addTag(tag)}
+                    className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200/80 text-slate-600 text-xs transition-colors"
                   >
                     + {tag}
                   </button>
@@ -275,29 +312,44 @@ export default function ContactModal({
             </div>
           </div>
 
-          <div className="field">
-            <label htmlFor="contact-notes">Notes</label>
-
+          {/* Notes Field */}
+          <div className="space-y-1.5">
+            <label
+              htmlFor="contact-notes"
+              className="text-xs font-semibold text-slate-700"
+            >
+              Notes
+            </label>
             <textarea
               id="contact-notes"
+              rows={3}
               value={form.notes}
               onChange={(event) => setField("notes", event.target.value)}
               placeholder="Optional context about this contact"
+              className="w-full p-3.5 rounded-xl bg-slate-50/80 border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all resize-none"
             />
           </div>
 
-          <div className="modal-footer">
-            <button type="button" className="outline-button" onClick={onClose}>
+          {/* Footer Actions */}
+          <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-5 mt-6">
+            <button
+              type="button"
+              className="px-4 py-2.5 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-colors shadow-xs"
+              onClick={onClose}
+            >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="primary-button small"
               disabled={saving}
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-semibold transition-all shadow-xs disabled:opacity-50"
             >
               {saving ? (
-                <span className="spinner dark" />
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  <span>Saving…</span>
+                </>
               ) : contact ? (
                 "Save changes"
               ) : (

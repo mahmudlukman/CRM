@@ -7,7 +7,6 @@ import {
 } from "react-router-dom";
 import { useTokenRefresh } from "./utils/userRefreshToken";
 import { useSelector } from "react-redux";
-import type { RootState } from "./@types";
 import NotFoundPage from "./pages/NotFound/NotFoundPage";
 import LoginPage from "./pages/Login/LoginPage";
 import RegisterPage from "./pages/Register/RegisterPage";
@@ -20,17 +19,28 @@ import NotesPage from "./pages/Notes/NotesPage";
 import FollowUpsPage from "./pages/FollowUps/FollowUpsPage";
 import SettingsPage from "./pages/Settings/SettingsPage";
 import { AppShell } from "./components/ui/AppShell";
+import type { RootState } from "./redux/store";
+import ProtectedRoute from "./components/auth/PrivateRoute";
 
-// Protected Route wrapper component
-const ProtectedRoute = () => {
-  const { user } = useSelector((state: RootState) => state.auth);
+const AuthLoader = () => (
+  <div className="flex h-screen w-screen items-center justify-center">
+    <span>Loading...</span>
+  </div>
+);
 
-  return user ? <Outlet /> : <Navigate to="/login" replace />;
+const PublicOnlyRoute = () => {
+  const { user, isInitialized } = useSelector((state: RootState) => state.auth);
+
+  if (!isInitialized) return <AuthLoader />;
+
+  return user ? <Navigate to="/dashboard" replace /> : <Outlet />;
 };
 
-// Root redirect component
 const RootRedirect = () => {
-  const { user } = useSelector((state: RootState) => state.auth);
+  const { user, isInitialized } = useSelector((state: RootState) => state.auth);
+
+  if (!isInitialized) return <AuthLoader />;
+
   return user ? (
     <Navigate to="/dashboard" replace />
   ) : (
@@ -44,18 +54,16 @@ const router = createBrowserRouter([
     element: <RootRedirect />,
   },
   {
-    path: "/login",
-    element: <LoginPage />,
-  },
-  {
-    path: "/register",
-    element: <RegisterPage />,
+    element: <PublicOnlyRoute />,
+    children: [
+      { path: "/login", element: <LoginPage /> },
+      { path: "/register", element: <RegisterPage /> },
+    ],
   },
   {
     path: "/activation/:activation_token",
     element: <Activation />,
   },
-  // Protected routes with AppShell
   {
     element: <ProtectedRoute />,
     children: [
