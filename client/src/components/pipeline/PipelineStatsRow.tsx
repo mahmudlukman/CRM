@@ -1,4 +1,4 @@
-import { CircleDollarSign, Layers3, Target, Trophy } from "lucide-react";
+import { HandCoins, Layers3, Target, Trophy } from "lucide-react";
 import type { PipelineStats } from "../../utils/pipelineHelpers";
 import { formatCompactCurrency } from "../../utils/currency";
 
@@ -12,7 +12,7 @@ const PipelineStatsRow = ({ stats }: PipelineStatsRowProps) => {
       {/* Total Pipeline */}
       <div className="flex items-center gap-3.5 p-4 rounded-2xl border border-slate-200/80 bg-white shadow-xs hover:shadow-md transition-shadow">
         <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-blue-50 text-blue-600 shrink-0">
-          <CircleDollarSign size={20} />
+          <HandCoins size={20} />
         </div>
         <div className="flex flex-col min-w-0">
           <span className="text-xs font-medium text-slate-500 truncate">

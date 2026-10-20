@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { useRefreshTokenMutation } from "../redux/features/api/apiSlice";
-import type { RootState } from "../@types";
+import type { RootState } from "../redux/store";
 
 export const useTokenRefresh = () => {
   const [refreshToken] = useRefreshTokenMutation();
@@ -19,7 +19,7 @@ export const useTokenRefresh = () => {
     const refreshInterval = 14 * 60 * 1000;
 
     intervalRef.current = setInterval(() => {
-      refreshToken({})
+      refreshToken()
         .unwrap()
         .catch(() => {});
     }, refreshInterval);
